@@ -27,3 +27,25 @@ After being able to read and plot the data, in a meeting with the stakeholders, 
 3. Iterate the read script to detect the outliers and save the data cleaned in a separated csv.
 
 To give your answer, create a repository in any platform you feel confortable with and share it with us. Over that solution we will discuss in a pair-programming about the solution chosen, the thoughts to reach that solution, and a possible improvement.
+
+## Solution proposed
+
+I'm using asyncio and aiocsv to process asynchronously all the basic IO from and to files.
+
+Create a pyenv virtualenv (3.9.6) and execute the script as follows:
+
+```bash
+(dev) ➜  sparta git:(main) ✗ python sparta-csv-parse.py 
+usage: sparta-csv-parse.py [-h] filepath
+sparta-csv-parse.py: error: the following arguments are required: filepath
+```
+
+Simply specify the filename to read from:
+
+```bash
+(dev) ➜  sparta git:(main) ✗ python sparta-csv-parse.py RBOB_data_test.csv
+```
+The script will:
+- generate a detailed log ```csv_parse.log``` with the outliers and possible timestamp formatting problems (automatically fixed) :-D
+- write the cleaned data to a file named ```new_rbob_data.csv``` with the original header.
+- plot the graphs (WIP)
