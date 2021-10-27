@@ -55,7 +55,7 @@ def check_datetime(date_time):
             logging.info(f'Timestamp {date_time} has format {date_format}')
             return(date_time_obj)# if correct format, don't test any other formats
         except ValueError:
-            logging.error(f'Timestamp {date_time} is not formatted like {date_format} ... testing more formats')
+            #logging.error(f'Timestamp {date_time} is not formatted like {date_format} ... testing more formats')
             pass # if incorrect format, keep trying other formats    
     raise ValueError('no valid date format found')
    
@@ -76,8 +76,11 @@ def get_zscore(value, window):
         std = statistics.stdev(window)
     else:
         std = 1
-    zscore = (value - avg) / std
-    return zscore
+    #std of the same values is 0. Avoid the ZeroDivision exception
+    if std == 0 or std ==1:
+        return (value - avg)
+    else:
+        return (value - avg) / std
 
 
 def plot_graph(axis_x_list, axis_y_list):
@@ -90,14 +93,26 @@ def plot_graph(axis_x_list, axis_y_list):
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
     ax.xaxis.set_minor_locator(mdates.HourLocator(interval=12))
     plt.title("Sparta Data Test",fontsize=13)
-    plt.xlabel("Value",fontsize=8)
-    plt.ylabel("Timeline",fontsize=8)
+    plt.xlabel("Timeline",fontsize=8)
+    plt.ylabel("Price",fontsize=8)
     plt.legend()
     ax.plot(mdates.date2num(axis_x_list), axis_y_list, label = "Feb.22")
     ax.tick_params(which='major', labelsize=8, labelbottom=True)
     ax.tick_params(which='minor', labelsize=6, color='r', labeltop=True)
     ax.grid()
     plt.show()                     
+
+def process_csv_row(date_item, value, month: LoadMonth):
+    #update window for zscore i use the last 3 timestamps = last 45 mins
+    month.window_append(value)
+    if month.idxwin > 3:
+        month.window_pop()
+        month.idxwin = 0
+    #load data into the object
+    month.load_data(date_item, value)
+    # counte up for the window
+    month.idxwin += 1
+    return get_zscore(value, month.window_get())
 
 async def main():
     # Set logging level
@@ -132,22 +147,36 @@ async def main():
                 #read line
                 date_item = check_datetime(row['generated_on'])
                 value = float(row['dlvd_price'])
-                # append to lists
+                # process rows
                 if row['load_month'] == 'Sep.21' and date_item is not None:
-                    #update window for zscore i use the last 3 timestamps = last 45 mins
-                    sep21.window_append(value)
-                    if sep21.idxwin > 3:
-                        sep21.window_pop()
-                        sep21.idxwin = 0
-                    sep21.load_data(date_item, value)
-                    sep21.idxwin += 1
-                    zscore = get_zscore(value, sep21.window_get())
-                    if zscore > 2 or zscore < -2:
-                        logging.info(f'outlier detected: {value}')
-                    else:
-                        await awriter.writerow(row)
+                    z_score = process_csv_row(date_item, value, sep21)
+                elif row['load_month'] == 'Oct.21' and date_item is not None:
+                    z_score = process_csv_row(date_item, value, oct21)   
+                elif row['load_month'] == 'Nov.21' and date_item is not None:
+                    z_score = process_csv_row(date_item, value, nov21)
+                elif row['load_month'] == 'Dec.21' and date_item is not None:
+                    z_score = process_csv_row(date_item, value, dec21)
+                elif row['load_month'] == 'Jan.22' and date_item is not None:
+                    z_score = process_csv_row(date_item, value, jan22)
+                elif row['load_month'] == 'Feb.22' and date_item is not None:
+                    z_score = process_csv_row(date_item, value, feb22)
+                else:
+                    raise ValueError('Load Month is not in the expected list')
+                #Now checking for outliers if not write to file
+                if z_score > 2 or z_score < -2:
+                    logging.info('-----------------------------------------------------')
+                    logging.info(f'''Outlier detected in {row['load_month']}: {value}''')
+                    logging.info('-----------------------------------------------------')
+                else:
+                    await awriter.writerow(row)
+        # Plot all the graphs        
         #plot graph
         plot_graph(sep21.get_xaxis(), sep21.get_yaxis())
+        plot_graph(oct21.get_xaxis(), oct21.get_yaxis())
+        plot_graph(nov21.get_xaxis(), nov21.get_yaxis())
+        plot_graph(dec21.get_xaxis(), dec21.get_yaxis())
+        plot_graph(jan22.get_xaxis(), jan22.get_yaxis())
+        plot_graph(feb22.get_xaxis(), feb22.get_yaxis())
 
 if __name__ == '__main__':
     asyncio.run(main())

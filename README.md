@@ -48,4 +48,4 @@ Simply specify the filename to read from:
 The script will:
 - generate a detailed log ```csv_parse.log``` with the outliers and possible timestamp formatting problems (automatically fixed) :-D
 - write the cleaned data to a file named ```new_rbob_data.csv``` with the original header.
-- plot the graphs (WIP)
+- plot the graphs in the same figure(WIP)
