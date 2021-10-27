@@ -12,6 +12,36 @@ import time
 import argparse
 from datetime import datetime
 
+class LoadMonth():
+    def __init__(
+        self,
+        name
+    ):
+        self.name = name
+        self.__dlvd_val = []
+        self.__timestamps = []
+        self.__window = []
+        self.idxwin = 0
+    
+    def load_data(self, timestamps, dlvd_val):
+        self.__timestamps.append(timestamps)
+        self.__dlvd_val.append(dlvd_val)
+    
+    def get_xaxis(self):
+        return self.__timestamps
+
+    def get_yaxis(self):
+        return self.__dlvd_val
+
+    def window_append(self, win):
+        self.__window.append(win)
+
+    def window_pop(self):
+        self.__window.pop(0)
+    
+    def window_get(self):
+        return self.__window
+
 def check_datetime(date_time):
     """ 
         Input is a string in the %Y-%m-%dT%H:%M:%S format
@@ -39,26 +69,35 @@ def check_filepath(filepath):
         print('File does not exist!: enter the correct path')
         return False
 
+def get_zscore(value, window):
+    avg = sum(window) / len(window)
+    #std function needs at least two values to compute
+    if len(window) > 2:
+        std = statistics.stdev(window)
+    else:
+        std = 1
+    zscore = (value - avg) / std
+    return zscore
+
+
 def plot_graph(axis_x_list, axis_y_list):
-    # Preparing data to plot
-        axis_y_list = sorted(axis_y_list)
-        axis_x_list = sorted(axis_x_list)
-        hfmt = mdates.DateFormatter('%Y-%m-%d %H:%M')
-        fig = plt.figure()
-        ax = fig.add_subplot()
-        #ax.patch.set_facecolor('lightgrey')
-        hourlocator = mdates.HourLocator(interval = 12)
-        #daylocator = mdates.DayLocator(interval = 1)
-        ax.xaxis.set_major_formatter(hfmt)
-        #ax.xaxis.set_major_locator(daylocator)
-        ax.xaxis.set_major_locator(hourlocator)
-        ax.set_title('Sparta Data Test')
-        ax.set_xlabel('generated_on')
-        ax.set_ylabel('dldv_price')
-        #plt.setp(ax.get_xticklabels(), size=8)
-        ax.plot(mdates.date2num(axis_x_list), axis_y_list, linewidth=2)
-        plt.grid()
-        plt.show()                     
+# Preparing data to plot
+    axis_y_list = sorted(axis_y_list)
+    axis_x_list = sorted(axis_x_list)
+    fig, ax = plt.subplots()
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    ax.xaxis.set_minor_formatter(mdates.DateFormatter('%H'))
+    ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
+    ax.xaxis.set_minor_locator(mdates.HourLocator(interval=12))
+    plt.title("Sparta Data Test",fontsize=13)
+    plt.xlabel("Value",fontsize=8)
+    plt.ylabel("Timeline",fontsize=8)
+    plt.legend()
+    ax.plot(mdates.date2num(axis_x_list), axis_y_list, label = "Feb.22")
+    ax.tick_params(which='major', labelsize=8, labelbottom=True)
+    ax.tick_params(which='minor', labelsize=6, color='r', labeltop=True)
+    ax.grid()
+    plt.show()                     
 
 async def main():
     # Set logging level
@@ -74,10 +113,13 @@ async def main():
     if check_filepath(args.filepath) is not False:
         async with aiofiles.open(args.filepath, mode="r", encoding="utf-8-sig", newline="\n") as fhandler, \
                     aiofiles.open("new_rbob_data.csv", mode="w", encoding="utf-8-sig", newline="\n") as fhandlew:
-            sep21x = []
-            sep21y = []
-            index = 0
-            window = []
+            #Init load_month objects
+            sep21 = LoadMonth('Sep.21')
+            oct21 = LoadMonth('Oct.21')
+            nov21 = LoadMonth('Nov.21')
+            dec21 = LoadMonth('Dec.21')
+            jan22 = LoadMonth('Jan.22')
+            feb22 = LoadMonth('Feb.22')
             # Unlike csv.DictReader
             # if not provided in the constructor, at least one row has to be retrieved before getting the fieldnames.
             areader = AsyncDictReader(fhandler, delimiter=",")
@@ -87,34 +129,25 @@ async def main():
             await awriter.writeheader()
             #begin the readline process and calculus
             async for row in areader:
-                #reset the time window for localities
-                if index > 4:
-                    window.pop(0)
-                    window.append(value)
-                    index = 0
-                # read line
+                #read line
                 date_item = check_datetime(row['generated_on'])
                 value = float(row['dlvd_price'])
                 # append to lists
-                if row['load_month'] == 'Feb.22' and date_item is not None:
-                    sep21x.append(date_item)
-                    sep21y.append(value)
-                    # append to window
-                    window.append(value)
-                    index += 1
-                    avg = sum(window) / len(window)
-                    #std function needs at least two values to compute
-                    if index > 2:
-                        std = statistics.stdev(window)
-                    else:
-                        std = 1
-                    zscore = (value - avg) / std
+                if row['load_month'] == 'Sep.21' and date_item is not None:
+                    #update window for zscore i use the last 3 timestamps = last 45 mins
+                    sep21.window_append(value)
+                    if sep21.idxwin > 3:
+                        sep21.window_pop()
+                        sep21.idxwin = 0
+                    sep21.load_data(date_item, value)
+                    sep21.idxwin += 1
+                    zscore = get_zscore(value, sep21.window_get())
                     if zscore > 2 or zscore < -2:
                         logging.info(f'outlier detected: {value}')
                     else:
                         await awriter.writerow(row)
         #plot graph
-        plot_graph(sep21x,sep21y)
+        plot_graph(sep21.get_xaxis(), sep21.get_yaxis())
 
 if __name__ == '__main__':
     asyncio.run(main())

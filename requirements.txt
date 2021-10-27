@@ -2,3 +2,4 @@ asyncio
 matplotlib
 aiofiles
 aiocsv
+PyQt5
