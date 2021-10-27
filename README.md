@@ -28,6 +28,16 @@ After being able to read and plot the data, in a meeting with the stakeholders, 
 
 To give your answer, create a repository in any platform you feel confortable with and share it with us. Over that solution we will discuss in a pair-programming about the solution chosen, the thoughts to reach that solution, and a possible improvement.
 
+## The problem
+
+Basically to detect outliers it is advisable to begin with a simple exploratory analysis of the dataser, using a Jupyter notebook and Pandas, but I went directly to
+check the CSV and the coding session helped me to detect the outliers and the formatting problems. One of the problems was that the CSV is coded with BOM format and
+had to be taken into account opening the file with ```utf-8-sig``` property. Also the ```generated_on``` column has different formats (```21.09.21 12:12``` and ```2021-12-09 12:34:23.087```) and had to be taken into account too. These formatting problems are usually detected during the exploratory analysis.
+
+Once this formatting problems were solved, I used a zscore to get the outliers. Localities (values in near windows of time tend to have a low std) are very common calculating avgs and stds for streamed/continuous data so it is advisable, statistically speaking, to select a time frame/window (last 45 min in our case) and use the values of that window to calculate the zscore for the current value. 
+
+Also another important issue is to begin with an acceptable range for the zscore, being -2 +2 a good baseline, that actually works nicely in this dataset, because the outliers are very clear.
+
 ## Solution proposed
 
 I'm using asyncio and aiocsv to process asynchronously all the basic IO from and to files.
