@@ -30,7 +30,7 @@ To give your answer, create a repository in any platform you feel confortable wi
 
 ## The problem
 
-Basically to detect outliers it is advisable to begin with a simple exploratory analysis of the dataser, using a Jupyter notebook and Pandas, but I went directly to
+Basically to detect outliers it is advisable to begin with a simple exploratory analysis of the dataset, using a Jupyter notebook and Pandas, but I went directly to
 check the CSV and the coding session helped me to detect the outliers and the formatting problems. One of the problems was that the CSV is coded with BOM format and
 had to be taken into account opening the file with ```utf-8-sig``` property. Also the ```generated_on``` column has different formats (```21.09.21 12:12``` and ```2021-12-09 12:34:23.087```) and had to be taken into account too. These formatting problems are usually detected during the exploratory analysis.
 
@@ -58,4 +58,4 @@ Simply specify the filename to read from:
 The script will:
 - generate a detailed log ```csv_parse.log``` with the outliers and possible timestamp formatting problems (automatically fixed) :-D
 - write the cleaned data to a file named ```new_rbob_data.csv``` with the original header.
-- plot the graphs in the same figure(WIP)
+- plot the graphs in the same figure

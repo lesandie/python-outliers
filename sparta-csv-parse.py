@@ -51,7 +51,7 @@ def check_datetime(date_time):
     for date_format in POSSIBLE_DATE_FORMATS:
         try:
             date_time_obj = datetime.strptime(date_time, date_format) # try to get the date
-            logging.info(f'Timestamp {date_time} has format {date_format}')
+            logging.warning(f'Timestamp {date_time} has format {date_format}')
             return(date_time_obj)# if correct format, don't test any other formats
         except ValueError:
             #logging.error(f'Timestamp {date_time} is not formatted like {date_format} ... testing more formats')
@@ -72,17 +72,29 @@ def get_zscore(value, window):
     """
         Calculates the zscore
     """
-    avg = sum(window) / len(window)
     #std function needs at least two values to compute
-    if len(window) > 2:
+    if len(window) < 2:
+       return 0
+    else:
+        value = round(value,2)
+        avg = sum(window) / len(window)
+        avg = round(avg,2)
         std = statistics.stdev(window)
-    else:
-        std = 1
-    #std of the same values is 0. Avoid the ZeroDivision exception
-    if std == 0 or std ==1:
-        return (value - avg)
-    else:
-        return (value - avg) / std
+        std = round(std,2)
+        #std of the same values is 0. Avoid the ZeroDivision exception
+        if std == 0.00:
+            return 0
+        else:
+            zscore = (value - avg) / std
+            zscore = round(zscore,2)
+            if zscore > 10:
+                print(f'value = {value}')
+                print(f'window = {window}')
+                print(f'avg = {avg}')
+                print(f'stdev = {std}')
+                print(f'zscore = {zscore}')
+                print('-------------------')
+            return zscore
 
 
 def plot_graph(*args: LoadMonth):
@@ -113,14 +125,15 @@ def process_csv_row(date_item, value, month: LoadMonth):
     """
         process each row and modifies the time window to dapt it to the last value
     """
+    zscore = get_zscore(value, month.window_get())
     #update window for zscore i use the last 3 timestamps = last 45 mins
     if len(month.window_get()) > 2:
         month.window_pop()
-    #load data into the object
-    month.load_data(date_item, value)
-    month.window_append(value)
     # count up for the window
-    return get_zscore(value, month.window_get())
+    month.window_append(value)
+    # load the data into the object
+    month.load_data(date_item, value)
+    return zscore
 
 async def main():
     # Set logging level
@@ -171,7 +184,7 @@ async def main():
                 else:
                     raise ValueError('Load Month is not in the expected list')
                 #Now checking for outliers if not write to file
-                if z_score > 2 or z_score < -2:
+                if z_score > 50 or z_score < -50:
                     logging.info('-----------------------------------------------------')
                     logging.info(f'''Outlier detected in {row['load_month']}: {value}''')
                     logging.info('-----------------------------------------------------')
