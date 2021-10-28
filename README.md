@@ -36,7 +36,7 @@ had to be taken into account opening the file with ```utf-8-sig``` property. Als
 
 Once this formatting problems were solved, I used a zscore to get the outliers. Localities (values in near windows of time tend to have a low std) are very common calculating avgs and stds for streamed/continuous data so it is advisable, statistically speaking, to select a time frame/window (last 45 min in our case) and use the values of that window to calculate the zscore for the current value. 
 
-Also another important issue is to begin with an acceptable range for the zscore, being -2 +2 a good baseline, that actually works nicely in this dataset, because the outliers are very clear.
+Also another important issue is to begin with an acceptable range for the zscore, being +50 and -50 a good baseline, that actually works nicely in this dataset, because the outliers are very clear. In order to test the zscore range for this dataset, I've generated a ```test_values.txt``` to use it as a guide and validate the z-score calculations.
 
 ## Solution proposed
 
@@ -55,7 +55,9 @@ Simply specify the filename to read from:
 ```bash
 (dev) ➜  sparta git:(main) ✗ python sparta-csv-parse.py RBOB_data_test.csv
 ```
+
 The script will:
-- generate a detailed log ```csv_parse.log``` with the outliers and possible timestamp formatting problems (automatically fixed) :-D
+- generate a detailed log ```csv_parse.log``` with the outliers and the error dates. 
+- fix timestamp formatting problems.
 - write the cleaned data to a file named ```new_rbob_data.csv``` with the original header.
-- plot the graphs in the same figure
+- plot the graphs in the same figure.

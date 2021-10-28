@@ -40,6 +40,14 @@ class LoadMonth():
     
     def window_get(self):
         return self.__window
+    
+    def get_last_date(self):
+        if len(self.__timestamps) == 0:
+            return None
+        else:
+            return self.__timestamps[-1]
+
+# MAIN FUNCTIONS
 
 def check_datetime(date_time):
     """ 
@@ -47,16 +55,16 @@ def check_datetime(date_time):
         Returns False if the input is not in the corret format 
         and the datetime object if the string is well formatted
     """
-    POSSIBLE_DATE_FORMATS = ["%d.%m.%y %H:%M", "%Y-%m-%d %H:%M:%S.%f"] # all the formats the date might be in
+    POSSIBLE_DATE_FORMATS = ['%d.%m.%y %H:%M', '%Y-%m-%d %H:%M:%S.%f'] # all the formats the date might be in
     for date_format in POSSIBLE_DATE_FORMATS:
         try:
             date_time_obj = datetime.strptime(date_time, date_format) # try to get the date
-            logging.warning(f'Timestamp {date_time} has format {date_format}')
+            #logging.warning(f'Timestamp {date_time} has format {date_format}')
             return(date_time_obj)# if correct format, don't test any other formats
         except ValueError:
             #logging.error(f'Timestamp {date_time} is not formatted like {date_format} ... testing more formats')
             pass # if incorrect format, keep trying other formats    
-    raise ValueError('no valid date format found')
+    raise ValueError(f'Timestamp {date_time} format not detected, consider adding the new format to POSSIBLE_DATE_FORMATS')
    
 def check_filepath(filepath):
     """
@@ -86,16 +94,7 @@ def get_zscore(value, window):
             return 0
         else:
             zscore = (value - avg) / std
-            zscore = round(zscore,2)
-            if zscore > 10:
-                print(f'value = {value}')
-                print(f'window = {window}')
-                print(f'avg = {avg}')
-                print(f'stdev = {std}')
-                print(f'zscore = {zscore}')
-                print('-------------------')
-            return zscore
-
+            return round(zscore,2)
 
 def plot_graph(*args: LoadMonth):
     """
@@ -123,17 +122,23 @@ def plot_graph(*args: LoadMonth):
 
 def process_csv_row(date_item, value, month: LoadMonth):
     """
-        process each row and modifies the time window to dapt it to the last value
+        process each row and modifies the time window to adapt it to the last value
     """
-    zscore = get_zscore(value, month.window_get())
-    #update window for zscore i use the last 3 timestamps = last 45 mins
-    if len(month.window_get()) > 2:
-        month.window_pop()
-    # count up for the window
-    month.window_append(value)
-    # load the data into the object
-    month.load_data(date_item, value)
-    return zscore
+    # Check if the current date is older than the last one
+    if month.get_last_date() is None or month.get_last_date() < date_item:
+        zscore = get_zscore(value, month.window_get())
+        #update window for zscore i use the last 3 timestamps = last 45 mins
+        if len(month.window_get()) > 2:
+            month.window_pop()
+        # count up for the window
+        month.window_append(value)
+        # load the data into the object
+        month.load_data(date_item, value)
+        return zscore
+    else:
+        logging.info('-----------------------------------------------------')
+        logging.info(f'''Date error: current date {date_item} is oldest than {month.get_last_date()} ... skipping''')
+        return None
 
 async def main():
     # Set logging level
@@ -172,7 +177,7 @@ async def main():
                 if row['load_month'] == 'Sep.21' and date_item is not None:
                     z_score = process_csv_row(date_item, value, sep21)
                 elif row['load_month'] == 'Oct.21' and date_item is not None:
-                    z_score = process_csv_row(date_item, value, oct21)   
+                    z_score = process_csv_row(date_item, value, oct21)
                 elif row['load_month'] == 'Nov.21' and date_item is not None:
                     z_score = process_csv_row(date_item, value, nov21)
                 elif row['load_month'] == 'Dec.21' and date_item is not None:
@@ -183,12 +188,13 @@ async def main():
                     z_score = process_csv_row(date_item, value, feb22)
                 else:
                     raise ValueError('Load Month is not in the expected list')
-                #Now checking for outliers if not write to file
-                if z_score > 50 or z_score < -50:
-                    logging.info('-----------------------------------------------------')
-                    logging.info(f'''Outlier detected in {row['load_month']}: {value}''')
-                    logging.info('-----------------------------------------------------')
+                #Now checking for outliers if not write to file. If z_score is None the date is wrong
+                if z_score is not None and (z_score > 50 or z_score < -50):
+                    logging.info('------------------------------------------------------------------------------------------------------------')
+                    logging.info(f'''Outlier detected in {row['load_month']} for date {date_item.strftime('%Y-%m-%d %H:%M:%S')} with {value}''')
                 else:
+                    #Change the string format to another
+                    row['generated_on'] = date_item.strftime('%Y-%m-%d %H:%M:%S')
                     await awriter.writerow(row)      
         #plot graph
         plot_graph(sep21, oct21, nov21, dec21, jan22, feb22)
