@@ -21,7 +21,6 @@ class LoadMonth():
         self.__dlvd_val = []
         self.__timestamps = []
         self.__window = []
-        self.idxwin = 0
     
     def load_data(self, timestamps, dlvd_val):
         self.__timestamps.append(timestamps)
@@ -70,6 +69,9 @@ def check_filepath(filepath):
         return False
 
 def get_zscore(value, window):
+    """
+        Calculates the zscore
+    """
     avg = sum(window) / len(window)
     #std function needs at least two values to compute
     if len(window) > 2:
@@ -83,35 +85,41 @@ def get_zscore(value, window):
         return (value - avg) / std
 
 
-def plot_graph(axis_x_list, axis_y_list):
-# Preparing data to plot
-    axis_y_list = sorted(axis_y_list)
-    axis_x_list = sorted(axis_x_list)
+def plot_graph(*args: LoadMonth):
+    """
+        Plotter
+    """
+    # Preparing to plot
     fig, ax = plt.subplots()
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     ax.xaxis.set_minor_formatter(mdates.DateFormatter('%H'))
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
     ax.xaxis.set_minor_locator(mdates.HourLocator(interval=12))
+    ax.tick_params(which='major', labelsize=8, labelbottom=True)
+    ax.tick_params(which='minor', labelsize=6, color='r', labeltop=True)
+    ax.grid()
+    #plot graphs
+    for arg in args:
+        ax.plot(mdates.date2num(arg.get_xaxis()), arg.get_yaxis(), label=arg.name)
+    #config the figure
+    plt.figure(fig)
     plt.title("Sparta Data Test",fontsize=13)
     plt.xlabel("Timeline",fontsize=8)
     plt.ylabel("Price",fontsize=8)
     plt.legend()
-    ax.plot(mdates.date2num(axis_x_list), axis_y_list, label = "Feb.22")
-    ax.tick_params(which='major', labelsize=8, labelbottom=True)
-    ax.tick_params(which='minor', labelsize=6, color='r', labeltop=True)
-    ax.grid()
     plt.show()                     
 
 def process_csv_row(date_item, value, month: LoadMonth):
+    """
+        process each row and modifies the time window to dapt it to the last value
+    """
     #update window for zscore i use the last 3 timestamps = last 45 mins
-    month.window_append(value)
-    if month.idxwin > 3:
+    if len(month.window_get()) > 2:
         month.window_pop()
-        month.idxwin = 0
     #load data into the object
     month.load_data(date_item, value)
-    # counte up for the window
-    month.idxwin += 1
+    month.window_append(value)
+    # count up for the window
     return get_zscore(value, month.window_get())
 
 async def main():
@@ -168,15 +176,9 @@ async def main():
                     logging.info(f'''Outlier detected in {row['load_month']}: {value}''')
                     logging.info('-----------------------------------------------------')
                 else:
-                    await awriter.writerow(row)
-        # Plot all the graphs        
+                    await awriter.writerow(row)      
         #plot graph
-        plot_graph(sep21.get_xaxis(), sep21.get_yaxis())
-        plot_graph(oct21.get_xaxis(), oct21.get_yaxis())
-        plot_graph(nov21.get_xaxis(), nov21.get_yaxis())
-        plot_graph(dec21.get_xaxis(), dec21.get_yaxis())
-        plot_graph(jan22.get_xaxis(), jan22.get_yaxis())
-        plot_graph(feb22.get_xaxis(), feb22.get_yaxis())
+        plot_graph(sep21, oct21, nov21, dec21, jan22, feb22)
 
 if __name__ == '__main__':
     asyncio.run(main())
