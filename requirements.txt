@@ -3,3 +3,4 @@ matplotlib
 aiofiles
 aiocsv
 PyQt5
+dateutils
