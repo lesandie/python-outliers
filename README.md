@@ -45,6 +45,7 @@ I'm using asyncio and aiocsv to process asynchronously all the basic IO from and
 Create a pyenv virtualenv (3.9.6) and execute the script as follows:
 
 ```bash
+(dev) ➜  sparta git:(main) ✗ pip install -r requirements.txt
 (dev) ➜  sparta git:(main) ✗ python sparta-csv-parse.py 
 usage: sparta-csv-parse.py [-h] filepath
 sparta-csv-parse.py: error: the following arguments are required: filepath
