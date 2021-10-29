@@ -137,7 +137,7 @@ def process_csv_row(date_item, value, month: LoadMonth):
         return zscore
     else:
         logging.info('-----------------------------------------------------')
-        logging.info(f'''Date error: current date {date_item} is oldest than {month.get_last_date()} ... skipping''')
+        logging.info(f'''Date error: current date {date_item} is older than last date {month.get_last_date()} ... skipping''')
         return None
 
 async def main():
