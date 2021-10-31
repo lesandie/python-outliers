@@ -18,19 +18,19 @@ class LoadMonth():
         name
     ):
         self.name = name
-        self.__dlvd_val = []
-        self.__timestamps = []
+        self.__timeseries = {}
         self.__window = []
     
-    def load_data(self, timestamps, dlvd_val):
-        self.__timestamps.append(timestamps)
-        self.__dlvd_val.append(dlvd_val)
+    def load_data(self, key, value):
+        self.__timeseries[key] = value
     
     def get_xaxis(self):
-        return self.__timestamps
+        d_ordered = dict(sorted(self.__timeseries.items()))
+        return list(d_ordered.keys())
 
     def get_yaxis(self):
-        return self.__dlvd_val
+        d_ordered = dict(sorted(self.__timeseries.items()))
+        return list(d_ordered.values())
 
     def window_append(self, win):
         self.__window.append(win)
@@ -40,12 +40,6 @@ class LoadMonth():
     
     def window_get(self):
         return self.__window
-    
-    def get_last_date(self):
-        if len(self.__timestamps) == 0:
-            return None
-        else:
-            return self.__timestamps[-1]
 
 # MAIN FUNCTIONS
 
@@ -91,7 +85,11 @@ def get_zscore(value, window):
         std = round(std,2)
         #std of the same values is 0. Avoid the ZeroDivision exception
         if std == 0.00:
-            return 0
+            # std is zero but current value is away from the median
+            if abs(value - avg) > 3:
+                return 100
+            else:
+                return 0
         else:
             zscore = (value - avg) / std
             return round(zscore,2)
@@ -124,21 +122,15 @@ def process_csv_row(date_item, value, month: LoadMonth):
     """
         process each row and modifies the time window to adapt it to the last value
     """
-    # Check if the current date is older than the last one
-    if month.get_last_date() is None or month.get_last_date() < date_item:
-        zscore = get_zscore(value, month.window_get())
-        #update window for zscore i use the last 3 timestamps = last 45 mins
-        if len(month.window_get()) > 2:
-            month.window_pop()
-        # count up for the window
-        month.window_append(value)
-        # load the data into the object
-        month.load_data(date_item, value)
-        return zscore
-    else:
-        logging.info('-----------------------------------------------------')
-        logging.info(f'''Date error: current date {date_item} is older than last date {month.get_last_date()} ... skipping''')
-        return None
+    zscore = get_zscore(value, month.window_get())
+    #update window for zscore i use the last 3 timestamps = last 45 mins
+    if len(month.window_get()) > 2:
+        month.window_pop()
+    # count up for the window
+    month.window_append(value)
+    # load the data into the object
+    month.load_data(date_item, value)
+    return zscore
 
 async def main():
     # Set logging level
@@ -161,6 +153,8 @@ async def main():
             dec21 = LoadMonth('Dec.21')
             jan22 = LoadMonth('Jan.22')
             feb22 = LoadMonth('Feb.22')
+            # init csv dictionary out
+            csv_out = {}
             # Unlike csv.DictReader
             # if not provided in the constructor, at least one row has to be retrieved before getting the fieldnames.
             areader = AsyncDictReader(fhandler, delimiter=",")
@@ -195,7 +189,7 @@ async def main():
                 else:
                     #Change the string format to another
                     row['generated_on'] = date_item.strftime('%Y-%m-%d %H:%M:%S')
-                    await awriter.writerow(row)      
+                    await awriter.writerow(row)
         #plot graph
         plot_graph(sep21, oct21, nov21, dec21, jan22, feb22)
 
