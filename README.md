@@ -38,7 +38,7 @@ Once this formatting problems were solved, I used a zscore to get the outliers. 
 
 Also another important issue is to begin with an acceptable range for the zscore, being +50 and -50 a good baseline, that actually works nicely in this dataset, because the outliers are very clear. In order to test the zscore range for this dataset, I've generated a ```test_values.txt``` to use it as a guide and validate the z-score calculations.
 
-And last, but not least is that some calculations are sent (as described in the test above) unsecuentially and for that i've created a condition to mark that values as wrong, although they seem to be good.
+And last, but not least is that some calculations are sent (as described in the test above) unsecuentially. I've changed from a list to a dict to order the timeseries and plot the calculations althought the're arriving later that expected.
 
 ## Solution proposed
 
