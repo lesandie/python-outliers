@@ -18,18 +18,18 @@ class LoadMonth():
         name
     ):
         self.name = name
-        self.__timeseries = {}
+        self.timeseries = {}
         self.__window = []
     
     def load_data(self, key, value):
-        self.__timeseries[key] = value
+        self.timeseries[key] = value
     
     def get_xaxis(self):
-        d_ordered = dict(sorted(self.__timeseries.items()))
+        d_ordered = dict(sorted(self.timeseries.items()))
         return list(d_ordered.keys())
 
     def get_yaxis(self):
-        d_ordered = dict(sorted(self.__timeseries.items()))
+        d_ordered = dict(sorted(self.timeseries.items()))
         return list(d_ordered.values())
 
     def window_append(self, win):
@@ -75,27 +75,29 @@ def get_zscore(value, window):
         Calculates the zscore
     """
     #std function needs at least two values to compute
-    if len(window) < 2:
+    if len(window) < 3:
        return 0
     else:
         value = round(value,2)
         avg = sum(window) / len(window)
         avg = round(avg,2)
         std = statistics.stdev(window)
-        std = round(std,2)
+        std = round(std,1)
         #std of the same values is 0. Avoid the ZeroDivision exception
-        if std == 0.00:
+        if std == 0.0:
             print(f'value = {value}')
             print(f'window = {window}')
             print(f'avg = {avg}')
             print(f'stdev = {std}')
-            print(f'zscore = 0.00')
-            print('-------------------')
             # std is zero but current value is away from the median
             if abs(value - avg) > 3:
+                print(f'zscore = 100')
+                print('-------------------')
                 return 100
             else:
-                return 0
+                print(f'zscore = 0.00')
+                print('-------------------')
+                return 0.00
         else:
             zscore = (value - avg) / std
             print(f'value = {value}')
@@ -136,12 +138,15 @@ def process_csv_row(date_item, value, month: LoadMonth):
     """
     zscore = get_zscore(value, month.window_get())
     #update window for zscore i use the last 3 timestamps = last 45 mins
-    if len(month.window_get()) > 2:
+    if len(month.window_get()) >= 3:
         month.window_pop()
     # count up for the window
     month.window_append(value)
     # load the data into the object
     month.load_data(date_item, value)
+    if date_item.strftime('%Y-%m-%d') == '2021-09-23' and month.name == 'Dec.21' and value == -7.15:
+        print(f'{date_item} and {value}')
+        print('-------------------')
     return zscore
 
 async def main():
@@ -195,9 +200,9 @@ async def main():
                 else:
                     raise ValueError('Load Month is not in the expected list')
                 #Now checking for outliers if not write to file. If z_score is None the date is wrong
-                if z_score is not None and (z_score > 50 or z_score < -50):
+                if z_score > 50 or z_score < -50:
                     logging.info('------------------------------------------------------------------------------------------------------------')
-                    logging.info(f'''Outlier detected in {row['load_month']} for date {date_item.strftime('%Y-%m-%d %H:%M:%S')} with {value}''')
+                    logging.info(f'''Outlier detected in {row['load_month']} for date {date_item.strftime('%Y-%m-%d %H:%M:%S')}: value {value} and zscore {z_score}''')
                 else:
                     #Change the string format to another
                     row['generated_on'] = date_item.strftime('%Y-%m-%d %H:%M:%S')
@@ -205,7 +210,9 @@ async def main():
                     #csv_out = csv_out | row      
             #Write file        
         #plot graph
-        plot_graph(sep21, oct21, nov21, dec21, jan22, feb22)
-
+        #plot_graph(sep21, oct21, nov21, dec21, jan22, feb22)
+        d_ordered = dict(sorted(dec21.timeseries.items()))
+        print(f'{dec21.timeseries.values()}')
+        plot_graph(dec21)
 if __name__ == '__main__':
     asyncio.run(main())
