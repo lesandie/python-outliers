@@ -21,9 +21,12 @@ class LoadMonth():
         self.timeseries = {}
         self.__window = []
     
-    def load_data(self, key, value):
-        self.timeseries[key] = value
+    def load_data(self, key, value, window):
+        self.timeseries[key] = list(value, window)
     
+    def get_value(self, key):
+        return self.timeseries[key]
+
     def get_xaxis(self):
         d_ordered = dict(sorted(self.timeseries.items()))
         return list(d_ordered.keys())
@@ -137,16 +140,16 @@ def process_csv_row(date_item, value, month: LoadMonth):
         process each row and modifies the time window to adapt it to the last value
     """
     zscore = get_zscore(value, month.window_get())
-    #update window for zscore i use the last 3 timestamps = last 45 mins
-    if len(month.window_get()) >= 3:
+    #update window for zscore i use the last 4 timestamps = last 45 mins
+    if len(month.window_get()) > 3:
         month.window_pop()
     # count up for the window
     month.window_append(value)
     # load the data into the object
-    month.load_data(date_item, value)
-    if date_item.strftime('%Y-%m-%d') == '2021-09-23' and month.name == 'Dec.21' and value == -7.15:
-        print(f'{date_item} and {value}')
-        print('-------------------')
+    month.load_data(date_item, value, month.window_get())
+    #if date_item.strftime('%Y-%m-%d') == '2021-09-23' and month.name == 'Dec.21' and value == -7.15:
+    #    print(f'{date_item} and {value}')
+    #    print('-------------------')
     return zscore
 
 async def main():
@@ -170,8 +173,8 @@ async def main():
             dec21 = LoadMonth('Dec.21')
             jan22 = LoadMonth('Jan.22')
             feb22 = LoadMonth('Feb.22')
-            # init csv dictionary out
-            csv_out = {}
+            # init last current date
+            current_date: datetime = None
             # Unlike csv.DictReader
             # if not provided in the constructor, at least one row has to be retrieved before getting the fieldnames.
             areader = AsyncDictReader(fhandler, delimiter=",")
@@ -184,21 +187,35 @@ async def main():
                 #read line
                 date_item = check_datetime(row['generated_on'])
                 value = float(row['dlvd_price'])
-                # process rows
-                if row['load_month'] == 'Sep.21' and date_item is not None:
-                    z_score = process_csv_row(date_item, value, sep21)
-                elif row['load_month'] == 'Oct.21' and date_item is not None:
-                    z_score = process_csv_row(date_item, value, oct21)
-                elif row['load_month'] == 'Nov.21' and date_item is not None:
-                    z_score = process_csv_row(date_item, value, nov21)
-                elif row['load_month'] == 'Dec.21' and date_item is not None:
-                    z_score = process_csv_row(date_item, value, dec21)
-                elif row['load_month'] == 'Jan.22' and date_item is not None:
-                    z_score = process_csv_row(date_item, value, jan22)
-                elif row['load_month'] == 'Feb.22' and date_item is not None:
-                    z_score = process_csv_row(date_item, value, feb22)
+                if current_date is not None and date_item > current_date:
+                    current_date = date_item
+                    # process rows normally
+                    if row['load_month'] == 'Sep.21' and date_item is not None:
+                        z_score = process_csv_row(date_item, value, sep21)
+                    elif row['load_month'] == 'Oct.21' and date_item is not None:
+                        z_score = process_csv_row(date_item, value, oct21)
+                    elif row['load_month'] == 'Nov.21' and date_item is not None:
+                        z_score = process_csv_row(date_item, value, nov21)
+                    elif row['load_month'] == 'Dec.21' and date_item is not None:
+                        z_score = process_csv_row(date_item, value, dec21)
+                    elif row['load_month'] == 'Jan.22' and date_item is not None:
+                        z_score = process_csv_row(date_item, value, jan22)
+                    elif row['load_month'] == 'Feb.22' and date_item is not None:
+                        z_score = process_csv_row(date_item, value, feb22)
+                    else:
+                        raise ValueError('Load Month is not in the expected list')
                 else:
-                    raise ValueError('Load Month is not in the expected list')
+                    # insert the date into the structure
+                    if date_item not in dec21.timeseries:
+                        prev_elem = next(i for i in dec21.timeseries.keys() if i < date_item)
+                        next_elem = next(i for i in dec21.timeseries.keys() if i >= date_item)
+                        if prev_elem != next_elem:
+                            calc_win = dec21.get_value(prev_elem)[0][0:2] + dec21.get_value(next_elem)[0][0:2]
+                            sep21.load_data(date_item, value, calc_win)
+                            z_score = get_zscore(value, calc_win)
+                    else:
+                        raise KeyError
+
                 #Now checking for outliers if not write to file. If z_score is None the date is wrong
                 if z_score > 50 or z_score < -50:
                     logging.info('------------------------------------------------------------------------------------------------------------')
