@@ -126,6 +126,7 @@ def order_insert(date_item, value, month: LoadMonth):
             calc_win = month.get_value(prev_elem)[1][2:] + month.get_value(next_elem)[1][0:2]
             month.load_data(date_item, value, calc_win)
             zscore = get_zscore(value, calc_win)
+            logging.info(f"Not ordered sequence of {date_item} with value: {value} with window: {calc_win} and zscore: {zscore}")
             return zscore
         else:
             logging.error(f"timeseries malformed please check the log")

@@ -1,4 +1,3 @@
-import logging
 from csv import DictReader, DictWriter
 import argparse
 from datetime import datetime
@@ -57,7 +56,7 @@ def main():
                     else:
                         raise ValueError('Load Month is not in the expected list')
                 elif date_item < current_date:
-                    # process rows normally
+                    # process anomalous order value
                     if row['load_month'] == 'Sep.21' and date_item is not None:
                         z_score = order_insert(date_item, value, sep21)
                     elif row['load_month'] == 'Oct.21' and date_item is not None:
@@ -77,7 +76,7 @@ def main():
                 
                 #Now checking for outliers if not write to file. If z_score is None the date is wrong
                 if z_score is not None:
-                    if z_score > 50 or z_score < -50:
+                    if z_score > 40 or z_score < -40:
                         logging.info('------------------------------------------------------------------------------------------------------------')
                         logging.info(f'''Outlier detected in {row['load_month']} for date {date_item.strftime('%Y-%m-%d %H:%M:%S')}: value {value} and zscore {z_score}''')
                     else:

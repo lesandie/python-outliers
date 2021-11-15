@@ -14,7 +14,7 @@ class LoadMonth():
         return self.__timeseries[key]
     
     def get_keys(self):
-        return self.__timeseries.keys()
+        return list(self.__timeseries.keys())
 
     def get_xaxis(self):
         d_ordered = dict(sorted(self.__timeseries.items()))
