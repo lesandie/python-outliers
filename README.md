@@ -1,5 +1,5 @@
 
-# Sparta commodities data test
+# Detect and plot outliers using Python
 
 ## Data Exercise
 
@@ -47,16 +47,16 @@ I'm using asyncio and aiocsv to process asynchronously all the basic IO from and
 Create a pyenv virtualenv (3.9.6) and execute the script as follows:
 
 ```bash
-(dev) ➜  sparta git:(main) ✗ pip install -r requirements.txt
-(dev) ➜  sparta git:(main) ✗ python sparta-csv-parse.py 
-usage: sparta-csv-parse.py [-h] filepath
-sparta-csv-parse.py: error: the following arguments are required: filepath
+(dev) ➜ git:(main) ✗ pip install -r requirements.txt
+(dev) ➜ git:(main) ✗ python sparta-csv-parse.py 
+usage: csv-parse.py [-h] filepath
+csv-parse.py: error: the following arguments are required: filepath
 ```
 
 Simply specify the filename to read from:
 
 ```bash
-(dev) ➜  sparta git:(main) ✗ python sparta-csv-parse.py RBOB_data_test.csv
+(dev) ➜ git:(main) ✗ python csv-parse.py RBOB_data_test.csv
 ```
 
 The script will:
