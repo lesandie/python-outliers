@@ -1,5 +1,5 @@
 
-# Sparta commodities data test
+# Detect and plot outliers using Python
 
 ## Data Exercise
 
@@ -38,7 +38,7 @@ Once this formatting problems were solved, I used a zscore to get the outliers. 
 
 Also another important issue is to begin with an acceptable range for the zscore, being +50 and -50 a good baseline, that actually works nicely in this dataset, because the outliers are very clear. In order to test the zscore range for this dataset, I've generated a ```test_values.txt``` to use it as a guide and validate the z-score calculations.
 
-And last, but not least is that some calculations are sent (as described in the test above) unsecuentially and for that i've created a condition to mark that values as wrong, although they seem to be good.
+And last, but not least is that some calculations are sent (as described in the test above) unsecuentially. I've changed from a list to a dict to order the timeseries and plot the calculations althought the're arriving later that expected.
 
 ## Solution proposed
 
@@ -47,16 +47,16 @@ I'm using asyncio and aiocsv to process asynchronously all the basic IO from and
 Create a pyenv virtualenv (3.9.6) and execute the script as follows:
 
 ```bash
-(dev) ➜  sparta git:(main) ✗ pip install -r requirements.txt
-(dev) ➜  sparta git:(main) ✗ python sparta-csv-parse.py 
-usage: sparta-csv-parse.py [-h] filepath
-sparta-csv-parse.py: error: the following arguments are required: filepath
+(dev) ➜ git:(main) ✗ pip install -r requirements.txt
+(dev) ➜ git:(main) ✗ python sparta-csv-parse.py 
+usage: csv-parse.py [-h] filepath
+csv-parse.py: error: the following arguments are required: filepath
 ```
 
 Simply specify the filename to read from:
 
 ```bash
-(dev) ➜  sparta git:(main) ✗ python sparta-csv-parse.py RBOB_data_test.csv
+(dev) ➜ git:(main) ✗ python csv-parse.py RBOB_data_test.csv
 ```
 
 The script will:
