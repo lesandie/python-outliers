@@ -49,27 +49,13 @@ def get_zscore(value, window):
         std = round(std,1)
         #std of the same values is 0. Avoid the ZeroDivision exception
         if std == 0.0:
-            print(f'value = {value}')
-            print(f'window = {window}')
-            print(f'avg = {avg}')
-            print(f'stdev = {std}')
             # std is zero but current value is away from the median
             if abs(value - avg) > 3:
-                print(f'zscore = 100')
-                print('-------------------')
                 return 100
             else:
-                print(f'zscore = 0.00')
-                print('-------------------')
                 return 0.00
         else:
             zscore = (value - avg) / std
-            print(f'value = {value}')
-            print(f'window = {window}')
-            print(f'avg = {avg}')
-            print(f'stdev = {std}')
-            print(f'zscore = {zscore}')
-            print('-------------------')
             return round(zscore,2)
 
 def plot_graph(*args: LoadMonth):
@@ -108,9 +94,6 @@ def process_csv_row(date_item, value, month: LoadMonth):
     month.window_append(value)
     # load the data into the object
     month.load_data(date_item, value, month.window_get())
-    #if date_item.strftime('%Y-%m-%d') == '2021-09-23' and month.name == 'Dec.21' and value == -7.15:
-    #    print(f'{date_item} and {value}')
-    #    print('-------------------')
     return zscore
 
 def order_insert(date_item, value, month: LoadMonth):

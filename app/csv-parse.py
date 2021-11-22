@@ -30,7 +30,7 @@ def main():
             z_score = None
             # if not provided in the constructor, at least one row has to be retrieved before getting the fieldnames.
             areader = DictReader(fhandler, delimiter=",")
-            #now we can get the fieldnames
+            #now we have the fieldnames/header to be written in the output file
             awriter = DictWriter(fhandlew, areader.fieldnames)
             awriter.writeheader()
             #begin the readline process and calculus
