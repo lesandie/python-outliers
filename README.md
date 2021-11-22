@@ -64,3 +64,9 @@ The script will:
 - fix timestamp formatting problems.
 - write the cleaned data to a file named ```new_rbob_data.csv``` with the original header.
 - plot the graphs in the same figure.
+
+## Future WIP
+
+In order to write the ordered rows to a file, better to create a dictionary with an entry for each row and generate a task with asyncio to flush the dictionary to a file
+when a checkpoint occurs (like flushing each 30 secs or each minute)
+

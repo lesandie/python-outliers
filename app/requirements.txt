@@ -4,3 +4,4 @@ aiofiles
 aiocsv
 PyQt5
 dateutils
+Pytest
