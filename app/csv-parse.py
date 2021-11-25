@@ -1,5 +1,6 @@
-from csv import DictReader, DictWriter
 import argparse
+import numpy as np
+from csv import DictReader, DictWriter
 from datetime import datetime
 from loadmonth import LoadMonth
 from functions import *
