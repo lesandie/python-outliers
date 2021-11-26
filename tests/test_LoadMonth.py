@@ -1,5 +1,4 @@
-from loadmonth import LoadMonth
-from functions import *
+from app.loadmonth import LoadMonth
 
 def test_loadmonth_creation():
     name = "Mar.22"
@@ -8,3 +7,4 @@ def test_loadmonth_creation():
         assert True
     else:
         assert False
+
