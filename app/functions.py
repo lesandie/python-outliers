@@ -9,6 +9,7 @@ from datetime import datetime
 from loadmonth import LoadMonth
 from typing import Union, Any
 from nptyping import NDArray
+from scipy import stats
 import numpy as np
 
 
@@ -43,25 +44,17 @@ def get_zscore(value, window: NDArray[Any]) -> float:
     """
     Calculates the zscore
     """
-    #std function needs at least two values to compute
-    if len(window) < 3:
-       return 0
-    else:
-        value = round(value,2)
-        avg = sum(window) / len(window)
-        avg = round(avg,2)
-        std = statistics.stdev(window)
-        std = round(std,1)
-        #std of the same values is 0. Avoid the ZeroDivision exception
-        if std == 0.0:
-            # std is zero but current value is away from the median
-            if abs(value - avg) > 3:
-                return 100
-            else:
-                return 0.00
+    # Insert value in the index0
+    value = round(value,2)
+    # If there are 3 or more values of difference
+    if len(window) > 0:
+        if abs(value - np.average(window)) < 3:
+            return 0.00     
         else:
-            zscore = (value - avg) / std
+            zscore = stats.zscore(np.insert(window, 0, value))[0]
             return round(zscore,2)
+    else:
+        return 0.00
 
 def plot_graph(*args: LoadMonth):
     """
@@ -78,7 +71,7 @@ def plot_graph(*args: LoadMonth):
     ax.grid()
     #plot graphs
     for arg in args:
-        ax.plot(mdates.date2num(arg.get_xaxis()), arg.get_yaxis(), label=arg.name)
+        ax.plot(arg.get_xaxis(), arg.get_yaxis(), label=arg.name)
     #config the figure
     plt.figure(fig)
     plt.title("Sparta Data Test",fontsize=13)

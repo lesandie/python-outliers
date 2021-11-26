@@ -76,16 +76,13 @@ def main():
                     logging.error(f"Current date is None ---> {current_date}")
                 
                 #Now checking for outliers if not write to file. If z_score is None the date is wrong
-                if z_score is not None:
-                    if z_score > 40 or z_score < -40:
-                        logging.info('------------------------------------------------------------------------------------------------------------')
-                        logging.info(f'''Outlier detected in {row['load_month']} for date {date_item.strftime('%Y-%m-%d %H:%M:%S')}: value {value} and zscore {z_score}''')
-                    else:
-                        #Change the string format to another
-                        row['generated_on'] = date_item.strftime('%Y-%m-%d %H:%M:%S')
-                        awriter.writerow(row)
+                if z_score >= 1.95 or z_score <= -1.95:
+                    logging.info('------------------------------------------------------------------------------------------------------------')
+                    logging.info(f'''Outlier detected for date {date_item.strftime('%Y-%m-%d %H:%M:%S')}: Window: {dec21.window_get()} value={value} and zscore={z_score}''')
                 else:
-                    logging.error(f"Error updating the timeseries for {date_item} and {value} with zscore: {z_score}") 
+                    #Change the string format to another
+                    row['generated_on'] = date_item.strftime('%Y-%m-%d %H:%M:%S')
+                    awriter.writerow(row)
         #plot graph
         plot_graph(sep21, oct21, nov21, dec21, jan22, feb22)
         
