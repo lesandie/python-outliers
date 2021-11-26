@@ -113,7 +113,9 @@ def order_insert(date_item, value, month: LoadMonth) -> Union[float, None]:
         prev_elem = prev[-1]
         next_elem = next[0]
         if prev_elem != next_elem:
-            #get_value returns the value and the window of that time
+            # get_value returns the value at position 0 and the window of that time.
+            # Simply select the last two window items from the prev_elem and the two frist elements of the next_elem
+            # and concatenate to a new window
             calc_win = np.concatenate((month.get_value(prev_elem)[3:5], month.get_value(next_elem)[1:3]))
             month.load_data(date_item, value, calc_win)
             zscore = get_zscore(value, calc_win)

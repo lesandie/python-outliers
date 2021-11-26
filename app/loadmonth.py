@@ -1,6 +1,6 @@
 from datetime import datetime
 from nptyping import NDArray
-from typing import Any
+from typing import Any, List
 import numpy as np
 
 class LoadMonth():
@@ -19,8 +19,8 @@ class LoadMonth():
     def get_value(self, key: datetime) -> NDArray[Any]:
         return self.__timeseries[key]
     
-    def get_keys(self) -> NDArray[Any]:
-        return np.array(list(self.__timeseries.keys()), dtype='datetime64')
+    def get_keys(self) -> List:
+        return list(self.__timeseries.keys())
 
     def get_xaxis(self):
         d_ordered = dict(sorted(self.__timeseries.items()))
