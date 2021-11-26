@@ -1,4 +1,5 @@
 # MAIN FUNCTIONS
+#from __futures__ import annotations
 import logging
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -6,12 +7,17 @@ import statistics
 import os
 from datetime import datetime
 from loadmonth import LoadMonth
+from typing import Union, Any
+from nptyping import NDArray
+from scipy import stats
+import numpy as np
 
-def check_datetime(date_time):
+
+def check_datetime(date_time) -> datetime:
     """ 
-        Input is a string in the %Y-%m-%dT%H:%M:%S format
-        Returns False if the input is not in the corret format 
-        and the datetime object if the string is well formatted
+    Input is a string in the %Y-%m-%dT%H:%M:%S format
+    Returns False if the input is not in the corret format 
+    and the datetime object if the string is well formatted
     """
     POSSIBLE_DATE_FORMATS = ['%d.%m.%y %H:%M', '%Y-%m-%d %H:%M:%S.%f'] # all the formats the date might be in
     for date_format in POSSIBLE_DATE_FORMATS:
@@ -24,9 +30,9 @@ def check_datetime(date_time):
             pass # if incorrect format, keep trying other formats    
     raise ValueError(f'Timestamp {date_time} format not detected, consider adding the new format to POSSIBLE_DATE_FORMATS')
    
-def check_filepath(filepath):
+def check_filepath(filepath) -> bool:
     """
-        Checks if the input path is correct and a file exists
+    Checks if the input path is correct and a file exists
     """
     if os.path.isfile(filepath):
         return True
@@ -34,33 +40,25 @@ def check_filepath(filepath):
         print('File does not exist!: enter the correct path')
         return False
 
-def get_zscore(value, window):
+def get_zscore(value, window: NDArray[Any]) -> float:
     """
-        Calculates the zscore
+    Calculates the zscore
     """
-    #std function needs at least two values to compute
-    if len(window) < 3:
-       return 0
-    else:
-        value = round(value,2)
-        avg = sum(window) / len(window)
-        avg = round(avg,2)
-        std = statistics.stdev(window)
-        std = round(std,1)
-        #std of the same values is 0. Avoid the ZeroDivision exception
-        if std == 0.0:
-            # std is zero but current value is away from the median
-            if abs(value - avg) > 3:
-                return 100
-            else:
-                return 0.00
+    # Insert value in the index0
+    value = round(value,2)
+    # If there are 3 or more values of difference
+    if len(window) > 0:
+        if abs(value - np.average(window)) < 3:
+            return 0.00     
         else:
-            zscore = (value - avg) / std
+            zscore = stats.zscore(np.insert(window, 0, value))[0]
             return round(zscore,2)
+    else:
+        return 0.00
 
 def plot_graph(*args: LoadMonth):
     """
-        Plotter
+    Plotter
     """
     # Preparing to plot
     fig, ax = plt.subplots()
@@ -73,7 +71,7 @@ def plot_graph(*args: LoadMonth):
     ax.grid()
     #plot graphs
     for arg in args:
-        ax.plot(mdates.date2num(arg.get_xaxis()), arg.get_yaxis(), label=arg.name)
+        ax.plot(arg.get_xaxis(), arg.get_yaxis(), label=arg.name)
     #config the figure
     plt.figure(fig)
     plt.title("Sparta Data Test",fontsize=13)
@@ -82,9 +80,9 @@ def plot_graph(*args: LoadMonth):
     plt.legend()
     plt.show()                     
 
-def process_csv_row(date_item, value, month: LoadMonth):
+def process_csv_row(date_item, value, month: LoadMonth) -> float:
     """
-        process each row and modifies the time window to adapt it to the last value
+    Process each row and modifies the time window to adapt it to the last value
     """
     zscore = get_zscore(value, month.window_get())
     #update window for zscore i use the last 4 timestamps = last hour
@@ -95,18 +93,23 @@ def process_csv_row(date_item, value, month: LoadMonth):
     # load the data into the object
     month.load_data(date_item, value, month.window_get())
     return zscore
-
-def order_insert(date_item, value, month: LoadMonth):
-    # insert the date into the structure
+ 
+def order_insert(date_item, value, month: LoadMonth) -> Union[float, None]:
+    """
+    Inserts the date into the structure
+    """
     dates = month.get_keys()
     if date_item not in dates:
         prev = [i for i in dates if i < date_item]
         next = [i for i in dates if i >= date_item]
-        prev_elem = prev.pop(-1)
-        next_elem = next.pop(0)
+        # Extracts the followind date and the prior date to date_item
+        prev_elem = prev[-1]
+        next_elem = next[0]
         if prev_elem != next_elem:
-            #get_value returns the value and the window of that time
-            calc_win = month.get_value(prev_elem)[1][2:] + month.get_value(next_elem)[1][0:2]
+            # get_value returns the value at position 0 and the window of that time.
+            # Simply select the last two window items from the prev_elem and the two frist elements of the next_elem
+            # and concatenate to a new window
+            calc_win = np.concatenate((month.get_value(prev_elem)[3:5], month.get_value(next_elem)[1:3]))
             month.load_data(date_item, value, calc_win)
             zscore = get_zscore(value, calc_win)
             logging.info(f"Not ordered sequence of {date_item} with value: {value} with window: {calc_win} and zscore: {zscore}")

@@ -1,23 +1,22 @@
-from csv import DictReader, DictWriter
 import argparse
+import numpy as np
+import click
+from csv import DictReader, DictWriter
 from datetime import datetime
 from loadmonth import LoadMonth
 from functions import *
 
-def main():
+@click.command()
+@click.option("--input", required=True, help="Input CSV filename for parsing")
+@click.option("--output", required=True, help="Output CSV filename for writing")
+
+def main(input: str, output: str):
     # Set logging level
-    logging.basicConfig(level=logging.INFO, filename='csv_parse.log', filemode='w',format='%(asctime)s - %(levelname)s - %(process)d - %(message)s')
-    # argument parsing
-    parser = argparse.ArgumentParser(description='utility for Sparta csv parsing',
-                                     epilog="Example: python sparta_csv_parse.py /path/to/filename")
-    # args
-    parser.add_argument('filepath', type=str, help='Path to the input file')
-    # parse arguments
-    args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO, filename='parsing.log', filemode='w',format='%(asctime)s - %(levelname)s - %(process)d - %(message)s')
     # check_input_parameters returns True or False if all the params are correct
-    if check_filepath(args.filepath) is not False:
-        with open(args.filepath, mode="r", encoding="utf-8-sig", newline="\n") as fhandler, \
-                    open("new_rbob_data.csv", mode="w", encoding="utf-8-sig", newline="\n") as fhandlew:
+    if check_filepath(input) is not False:
+        with open(input, mode="r", encoding="utf-8-sig", newline="\n") as fhandler, \
+                    open(output, mode="w", encoding="utf-8-sig", newline="\n") as fhandlew:
             #Init load_month objects
             sep21 = LoadMonth('Sep.21')
             oct21 = LoadMonth('Oct.21')
@@ -75,16 +74,13 @@ def main():
                     logging.error(f"Current date is None ---> {current_date}")
                 
                 #Now checking for outliers if not write to file. If z_score is None the date is wrong
-                if z_score is not None:
-                    if z_score > 40 or z_score < -40:
-                        logging.info('------------------------------------------------------------------------------------------------------------')
-                        logging.info(f'''Outlier detected in {row['load_month']} for date {date_item.strftime('%Y-%m-%d %H:%M:%S')}: value {value} and zscore {z_score}''')
-                    else:
-                        #Change the string format to another
-                        row['generated_on'] = date_item.strftime('%Y-%m-%d %H:%M:%S')
-                        awriter.writerow(row)
+                if z_score >= 1.95 or z_score <= -1.95:
+                    logging.info('------------------------------------------------------------------------------------------------------------')
+                    logging.info(f'''Outlier detected for date {date_item.strftime('%Y-%m-%d %H:%M:%S')}: Window: {dec21.window_get()} value={value} and zscore={z_score}''')
                 else:
-                    logging.error(f"Error updating the timeseries for {date_item} and {value} with zscore: {z_score}") 
+                    #Change the string format to another
+                    row['generated_on'] = date_item.strftime('%Y-%m-%d %H:%M:%S')
+                    awriter.writerow(row)
         #plot graph
         plot_graph(sep21, oct21, nov21, dec21, jan22, feb22)
         

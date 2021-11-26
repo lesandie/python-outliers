@@ -1,7 +1,7 @@
-asyncio
 matplotlib
-aiofiles
-aiocsv
 PyQt5
 dateutils
 Pytest
+click
+numpy
+scipy
