@@ -7,9 +7,7 @@ The goal of this exercise is to implement a script that reads the csv document p
 
 The document provided has all the calculated values to gather the delivery price of gasoline in the ARA (Europe) to NY route, called RBOB, for 6 different months. The document contains one work week of data.
 
-Document link: [RBOB_data_test](https://github.com/SpartaCommodities/data_test/blob/master/RBOB_data_test.csv)
-
-The important columns of the document are:
+The important columns of the ```RBOB_data_test``` are:
 
 - generated_on: This column contains the date of the calculation of the data, usually we make a calculation per route/month every 15 minutes, but this can not be allways true due to a changes of some prices or errors on the backend.
 - display_name: This columns contains the name of the route, in this document we have only included RBOB, that is the route we need to analyse.
@@ -36,37 +34,36 @@ had to be taken into account opening the file with ```utf-8-sig``` property. Als
 
 Once this formatting problems were solved, I used a zscore to get the outliers. Localities (values in near windows of time tend to have a low std) are very common calculating avgs and stds for streamed/continuous data so it is advisable, statistically speaking, to select a time frame/window (last 45 min in our case) and use the values of that window to calculate the zscore for the current value. 
 
-Also another important issue is to begin with an acceptable range for the zscore, being +50 and -50 a good baseline, that actually works nicely in this dataset, because the outliers are very clear. In order to test the zscore range for this dataset, I've generated a ```test_values.txt``` to use it as a guide and validate the z-score calculations.
+Also another important issue is to begin with an acceptable range for the zscore, being +2 and -2 a good baseline, that actually works nicely in this dataset, because the outliers are very clear. In order to test the zscore range for this dataset, I've generated a ```test_values.txt``` to use it as a guide and validate the z-score calculations.
 
 And last, but not least is that some calculations are sent (as described in the test above) unsecuentially. I've changed from a list to a dict to order the timeseries and plot the calculations althought the're arriving later that expected.
 
 ## Solution proposed
 
-I'm using asyncio and aiocsv to process asynchronously all the basic IO from and to files.
+I could use asyncio and aiocsv to process asynchronously all the basic IO from and to files but i tried to keep it simple.
 
 Create a pyenv virtualenv (3.9.6) and execute the script as follows:
 
 ```bash
 (dev) ➜ git:(main) ✗ pip install -r requirements.txt
-(dev) ➜ git:(main) ✗ python sparta-csv-parse.py 
+(dev) ➜ git:(main) ✗ python csv-parse.py 
 usage: csv-parse.py [-h] filepath
-csv-parse.py: error: the following arguments are required: filepath
+csv-parse.py: error: the following arguments are required: --input
 ```
 
 Simply specify the filename to read from:
 
 ```bash
-(dev) ➜ git:(main) ✗ python csv-parse.py RBOB_data_test.csv
+(dev) ➜ git:(main) ✗ python csv-parse.py --input RBOB_data_test.csv --output cleaned_RBOB_data.csv
 ```
 
 The script will:
-- generate a detailed log ```csv_parse.log``` with the outliers and the error dates. 
+- generate a detailed log ```parsing.log``` with the outliers and the error dates. 
 - fix timestamp formatting problems.
-- write the cleaned data to a file named ```new_rbob_data.csv``` with the original header.
+- write the cleaned data to a file named ```cleaned_RBOB_data.csv``` with the original header.
 - plot the graphs in the same figure.
 
 ## Future WIP
 
-In order to write the ordered rows to a file, better to create a dictionary with an entry for each row and generate a task with asyncio to flush the dictionary to a file
-when a checkpoint occurs (like flushing each 30 secs or each minute)
+The best way to obtain an ordered CSV (because there are out-of-order events arriving later) is to load chunks of the cleaned file into PostgreSQL and generate an ordered CSV using ```COPY``` and ```FORMAT``` commands. This way we can have a second copy of the csv in a database and we can use the benefits of an ORDER BY SELECT to order the results and write them to a CSV file. This could be done with a UDF in ```PL/pgSQL``` and an ```unlogged``` table to speedup the insertion process.
 
