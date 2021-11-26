@@ -1,5 +1,3 @@
-import argparse
-import numpy as np
 import click
 from csv import DictReader, DictWriter
 from datetime import datetime
