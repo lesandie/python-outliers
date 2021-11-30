@@ -3,7 +3,6 @@
 import logging
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import statistics
 import os
 from datetime import datetime
 from loadmonth import LoadMonth
@@ -72,7 +71,6 @@ def plot_graph(*args: LoadMonth):
     #plot graphs
     for arg in args:
         ax.plot(arg.get_xaxis(), arg.get_yaxis(), label=arg.name)
-    #config the figure
     plt.figure(fig)
     plt.title("Sparta Data Test",fontsize=13)
     plt.xlabel("Timeline",fontsize=8)
@@ -85,12 +83,10 @@ def process_csv_row(date_item, value, month: LoadMonth) -> float:
     Process each row and modifies the time window to adapt it to the last value
     """
     zscore = get_zscore(value, month.window_get())
-    #update window for zscore i use the last 4 timestamps = last hour
+    #update window for zscore using the last 4 timestamps = last hour
     if len(month.window_get()) > 3:
         month.window_pop()
-    # count up for the window
     month.window_append(value)
-    # load the data into the object
     month.load_data(date_item, value, month.window_get())
     return zscore
  
@@ -107,7 +103,7 @@ def order_insert(date_item, value, month: LoadMonth) -> Union[float, None]:
         next_elem = next[0]
         if prev_elem != next_elem:
             # get_value returns the value at position 0 and the window of that time.
-            # Simply select the last two window items from the prev_elem and the two frist elements of the next_elem
+            # Simply select the last two window items from the prev_elem and the two first elements of the next_elem
             # and concatenate to a new window
             calc_win = np.concatenate((month.get_value(prev_elem)[3:5], month.get_value(next_elem)[1:3]))
             month.load_data(date_item, value, calc_win)

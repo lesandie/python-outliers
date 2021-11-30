@@ -1,14 +1,18 @@
 import click
 from csv import DictReader, DictWriter
 from datetime import datetime
-from app.loadmonth import LoadMonth
-from app.functions import *
+from loadmonth import *
+from functions import *
 
 @click.command()
-@click.option("--input", required=True, help="Input CSV filename for parsing")
-@click.option("--output", required=True, help="Output CSV filename for writing")
+@click.option("--input", required=True, type=str, help="Input CSV filename for parsing")
+@click.option("--output", required=True, type=str, help="Output CSV filename for writing")
 
 def main(input: str, output: str):
+    """
+    Basic parsing utility
+    """    
+    
     # Set logging level
     logging.basicConfig(level=logging.INFO, filename='parsing.log', filemode='w',format='%(asctime)s - %(levelname)s - %(process)d - %(message)s')
     # check_input_parameters returns True or False if all the params are correct
