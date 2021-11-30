@@ -1,7 +1,0 @@
-matplotlib
-PyQt5
-dateutils
-Pytest
-click
-numpy
-scipy

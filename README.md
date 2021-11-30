@@ -45,10 +45,16 @@ I could use asyncio and aiocsv to process asynchronously all the basic IO from a
 Create a pyenv virtualenv (3.9.6) and execute the script as follows:
 
 ```bash
-(dev) ➜ git:(main) ✗ pip install -r requirements.txt
-(dev) ➜ git:(main) ✗ python csv-parse.py 
-usage: csv-parse.py [-h] filepath
-csv-parse.py: error: the following arguments are required: --input
+(dev) ➜ git:(main) ✗ pip install -e .
+(dev) ➜ git:(main) ✗ python csv-parse.py --help
+Usage: csv-parse.py [OPTIONS]
+
+  Basic parsing utility
+
+Options:
+  --input TEXT   Input CSV filename for parsing  [required]
+  --output TEXT  Output CSV filename for writing  [required]
+  --help         Show this message and exit.
 ```
 
 Simply specify the filename to read from:

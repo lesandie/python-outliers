@@ -14,7 +14,7 @@ def main(input: str, output: str):
     """    
     
     # Set logging level
-    logging.basicConfig(level=logging.INFO, filename='parsing.log', filemode='w',format='%(asctime)s - %(levelname)s - %(process)d - %(message)s')
+    logging.basicConfig(level=logging.INFO, filename='parsing.log', filemode='w',format='%(asctime)s - %(levelname)s - %(message)s')
     # check_input_parameters returns True or False if all the params are correct
     if check_filepath(input) is not False:
         with open(input, mode="r", encoding="utf-8-sig", newline="\n") as fhandler, \
