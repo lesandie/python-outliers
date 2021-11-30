@@ -1,4 +1,5 @@
 from app.loadmonth import LoadMonth
+from app.functions import get_zscore
 import numpy as np
 from datetime import datetime
 import pytest
@@ -15,6 +16,17 @@ def test_loadmonth_creation():
 def month():
     return LoadMonth("test")
 
+@pytest.mark.parametrize("window_values", np.array(
+        [
+        -8.5, 
+        -8.55, 
+        -8.55, 
+        -8.5
+        ]
+    )
+)
+
+
 def test_window(month):
     month.window_append(3.45)
     if isinstance(month.window_get(), np.ndarray):
@@ -29,3 +41,6 @@ def test_load_data(month):
     month.load_data(datetime(1970,1,1,0,0), 4.50, month.window_get())
     assert 4.50 == month.get_value(datetime(1970,1,1,0,0))[0]
     assert -4.50 == month.window_get()[0]
+
+def test_zscore(window_values):
+    assert 0.00 == get_zscore(-8.5, window_values)

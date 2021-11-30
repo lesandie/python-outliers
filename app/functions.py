@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import os
 from datetime import datetime
-from loadmonth import LoadMonth
+from app.loadmonth import LoadMonth
 from typing import Union, Any
 from nptyping import NDArray
 from scipy import stats
