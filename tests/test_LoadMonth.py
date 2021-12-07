@@ -21,11 +21,10 @@ def month():
         -8.5, 
         -8.55, 
         -8.55, 
-        -8.5
+        -8.5,
         ]
     )
 )
-
 
 def test_window(month):
     month.window_append(3.45)
@@ -42,5 +41,6 @@ def test_load_data(month):
     assert 4.50 == month.get_value(datetime(1970,1,1,0,0))[0]
     assert -4.50 == month.window_get()[0]
 
-def test_zscore(window_values):
-    assert 0.00 == get_zscore(-8.5, window_values)
+
+def zscore(window_values):
+        assert 0.00 == get_zscore(-8.5, window_values)

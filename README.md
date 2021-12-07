@@ -72,4 +72,3 @@ The script will:
 ## Future WIP
 
 The best way to obtain an ordered CSV (because there are out-of-order events arriving later) is to load chunks of the cleaned file into PostgreSQL and generate an ordered CSV using ```COPY``` and ```FORMAT``` commands. This way we can have a second copy of the csv in a database and we can use the benefits of an ORDER BY SELECT to order the results and write them to a CSV file. This could be done with a UDF in ```PL/pgSQL``` and an ```unlogged``` table to speedup the insertion process.
-
