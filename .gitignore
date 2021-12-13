@@ -2,6 +2,6 @@ templates/
 .vscode/
 __pycache__/
 .pytest_cache/
-*.egg*
+*.egg*/
 build/
 dist/
