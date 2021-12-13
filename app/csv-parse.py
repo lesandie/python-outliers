@@ -1,18 +1,20 @@
-import argparse
-import numpy as np
 import click
 from csv import DictReader, DictWriter
 from datetime import datetime
-from loadmonth import LoadMonth
-from functions import *
+from app.loadmonth import *
+from app.functions import *
 
 @click.command()
-@click.option("--input", required=True, help="Input CSV filename for parsing")
-@click.option("--output", required=True, help="Output CSV filename for writing")
+@click.option("--input", required=True, type=str, help="Input CSV filename for parsing")
+@click.option("--output", required=True, type=str, help="Output CSV filename for writing")
 
 def main(input: str, output: str):
+    """
+    Basic parsing utility
+    """    
+    
     # Set logging level
-    logging.basicConfig(level=logging.INFO, filename='parsing.log', filemode='w',format='%(asctime)s - %(levelname)s - %(process)d - %(message)s')
+    logging.basicConfig(level=logging.INFO, filename='parsing.log', filemode='w',format='%(asctime)s - %(levelname)s - %(message)s')
     # check_input_parameters returns True or False if all the params are correct
     if check_filepath(input) is not False:
         with open(input, mode="r", encoding="utf-8-sig", newline="\n") as fhandler, \

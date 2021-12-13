@@ -1,7 +1,7 @@
-from datetime import datetime
-from nptyping import NDArray
-from typing import Any, List
 import numpy as np
+from datetime import datetime
+from typing import Any, List
+from nptyping import NDArray
 
 class LoadMonth():
     def __init__(
