@@ -3,3 +3,5 @@ templates/
 __pycache__/
 .pytest_cache/
 *.egg*
+build/
+dist/

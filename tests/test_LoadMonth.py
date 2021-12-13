@@ -16,7 +16,9 @@ def test_loadmonth_creation():
 def month():
     return LoadMonth("test")
 
-@pytest.mark.parametrize("window_values", np.array(
+@pytest.fixture
+def window_values():
+    return np.array(
         [
         -8.5, 
         -8.55, 
@@ -24,7 +26,6 @@ def month():
         -8.5,
         ]
     )
-)
 
 def test_window(month):
     month.window_append(3.45)

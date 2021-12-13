@@ -13,6 +13,7 @@ setup(
         'dateutils',
         'click',
         'numpy',
+        'nptyping'
         'scipy'
     ],
     extras_require={'plotting': ['matplotlib']},
