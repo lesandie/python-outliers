@@ -55,7 +55,7 @@ def get_zscore(value, window: NDArray[Any]) -> float:
     else:
         return 0.00
 
-def plot_graph(*args: LoadMonth):
+def plot_graph(**kargs: LoadMonth) -> None:
     """
     Plotter
     """
@@ -69,7 +69,7 @@ def plot_graph(*args: LoadMonth):
     ax.tick_params(which='minor', labelsize=6, color='r', labeltop=True)
     ax.grid()
     #plot graphs
-    for arg in args:
+    for arg in kargs:
         ax.plot(arg.get_xaxis(), arg.get_yaxis(), label=arg.name)
     plt.figure(fig)
     plt.title("Sparta Data Test",fontsize=13)
