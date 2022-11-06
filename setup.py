@@ -1,3 +1,4 @@
+# https://ianhopkinson.org.uk/2022/02/understanding-setup-py-setup-cfg-and-pyproject-toml-in-python/
 from setuptools import setup, find_packages
 
 setup(
@@ -8,13 +9,14 @@ setup(
     author_email='dnieto@gmail.com',
     url='https://www.dnieto-it.es',
     packages=find_packages(include=['app', 'app.*']),
+    include_package_data=True,
     install_requires=[
-        'PyQt5',
+        'PyQT5',
         'dateutils',
         'click',
         'numpy',
-        'nptyping'
-        'scipy'
+        'setuptools',
+        'scipy',
     ],
     extras_require={'plotting': ['matplotlib']},
     setup_requires=['pytest-runner', 'flake8'],
