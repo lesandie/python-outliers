@@ -19,13 +19,15 @@ def main(input: str, output: str):
     if check_filepath(input) is not False:
         with open(input, mode="r", encoding="utf-8-sig", newline="\n") as fhandler, \
                     open(output, mode="w", encoding="utf-8-sig", newline="\n") as fhandlew:
-            #Init load_month objects
-            sep21 = LoadMonth('Sep.21')
-            oct21 = LoadMonth('Oct.21')
-            nov21 = LoadMonth('Nov.21')
-            dec21 = LoadMonth('Dec.21')
-            jan22 = LoadMonth('Jan.22')
-            feb22 = LoadMonth('Feb.22')
+            #Init load_month objects in a dict
+            loader = {
+                'Sep.21': LoadMonth('Sep.21'),  
+                'Oct.21': LoadMonth('Oct.21'),
+                'Nov.21': LoadMonth('Nov.21'),
+                'Dec.21': LoadMonth('Dec.21'),
+                'Jan.22': LoadMonth('Jan.22'),
+                'Feb.22': LoadMonth('Feb.22'),
+            }
             # init last current date and z_score
             current_date = datetime(1970,1,1,0,0)
             z_score = None
@@ -39,52 +41,34 @@ def main(input: str, output: str):
                 #read line
                 date_item = check_datetime(row['generated_on'])
                 value = float(row['dlvd_price'])
-                if date_item >= current_date:
-                    current_date = date_item
-                    # process rows normally
-                    if row['load_month'] == 'Sep.21' and date_item is not None:
-                        z_score = process_csv_row(date_item, value, sep21)
-                    elif row['load_month'] == 'Oct.21' and date_item is not None:
-                        z_score = process_csv_row(date_item, value, oct21)
-                    elif row['load_month'] == 'Nov.21' and date_item is not None:
-                        z_score = process_csv_row(date_item, value, nov21)
-                    elif row['load_month'] == 'Dec.21' and date_item is not None:
-                        z_score = process_csv_row(date_item, value, dec21)
-                    elif row['load_month'] == 'Jan.22' and date_item is not None:
-                        z_score = process_csv_row(date_item, value, jan22)
-                    elif row['load_month'] == 'Feb.22' and date_item is not None:
-                        z_score = process_csv_row(date_item, value, feb22)
-                    else:
-                        raise ValueError('Load Month is not in the expected list')
-                elif date_item < current_date:
+                if date_item >= current_date and date_item is not None:
+                    try:
+                        current_date = date_item
+                        # process rows normally
+                        # TODO key exception for loader dict
+                        z_score = process_csv_row(date_item, value, loader[row['load_month']])
+                    except Exception as e:
+                        raise KeyError('Load Month is not in the expected list')
+                elif date_item < current_date and date_item is not None:
                     # process anomalous order value
-                    if row['load_month'] == 'Sep.21' and date_item is not None:
-                        z_score = order_insert(date_item, value, sep21)
-                    elif row['load_month'] == 'Oct.21' and date_item is not None:
-                        z_score = order_insert(date_item, value, oct21)
-                    elif row['load_month'] == 'Nov.21' and date_item is not None:
-                        z_score = order_insert(date_item, value, nov21)
-                    elif row['load_month'] == 'Dec.21' and date_item is not None:
-                        z_score = order_insert(date_item, value, dec21)
-                    elif row['load_month'] == 'Jan.22' and date_item is not None:
-                        z_score = order_insert(date_item, value, jan22)
-                    elif row['load_month'] == 'Feb.22' and date_item is not None:
-                        z_score = order_insert(date_item, value, feb22)
-                    else:
-                        raise ValueError('Load Month is not in the expected list')
+                    try:
+                        z_score = order_insert(date_item, value, loader[row['load_month']])
+                    
+                    except Exception as e:
+                        raise KeyError('Load Month is not in the expected list')                
                 else:
                     logging.error(f"Current date is None ---> {current_date}")
                 
                 #Now checking for outliers if not write to file. If z_score is None the date is wrong
                 if z_score >= 1.95 or z_score <= -1.95:
                     logging.info('------------------------------------------------------------------------------------------------------------')
-                    logging.info(f'''Outlier detected for date {date_item.strftime('%Y-%m-%d %H:%M:%S')}: Window: {dec21.window_get()} value={value} and zscore={z_score}''')
+                    logging.info(f'''Outlier detected for date {date_item.strftime('%Y-%m-%d %H:%M:%S')}: Window: {loader[row['load_month']].window_get()} value={value} and zscore={z_score}''')
                 else:
                     #Change the string format to another
                     row['generated_on'] = date_item.strftime('%Y-%m-%d %H:%M:%S')
                     awriter.writerow(row)
         #plot graph
-        plot_graph(sep21, oct21, nov21, dec21, jan22, feb22)
+        plot_graph(**loader)
         
 if __name__ == '__main__':
     main()
