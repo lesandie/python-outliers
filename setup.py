@@ -2,13 +2,13 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='app',
+    name='cli',
     version='0.1.0',
     description='csv-parse setup',
     author='Diego Nieto',
     author_email='dnieto@gmail.com',
     url='https://www.dnieto-it.es',
-    packages=find_packages(include=['app', 'app.*']),
+    packages=find_packages(include=['cli', 'cli.*']),
     include_package_data=True,
     install_requires=[
         'PyQT5',

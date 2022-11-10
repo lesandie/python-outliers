@@ -46,8 +46,8 @@ Create a pyenv virtualenv (3.9.6) and execute the script as follows:
 
 ```bash
 (dev) ➜ git:(main) ✗ pip install -e .
-(dev) ➜ git:(main) ✗ python csv-parse.py --help
-Usage: csv-parse.py [OPTIONS]
+(dev) ➜ git:(main) ✗ python csv_parse.py --help
+Usage: csv_parse.py [OPTIONS]
 
   Basic parsing utility
 
@@ -60,7 +60,7 @@ Options:
 Simply specify the filename to read from:
 
 ```bash
-(dev) ➜ git:(main) ✗ python csv-parse.py --input RBOB_data_test.csv --output cleaned_RBOB_data.csv
+(dev) ➜ git:(main) ✗ python csv_parse.py --input RBOB_data_test.csv --output cleaned_RBOB_data.csv
 ```
 
 The script will:

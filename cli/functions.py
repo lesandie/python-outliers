@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import os
 from datetime import datetime
-from app.loadmonth import LoadMonth
+from cli.loadmonth import LoadMonth
 from typing import Union, Any
 import numpy as np
 import scipy
