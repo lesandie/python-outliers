@@ -62,7 +62,7 @@ def get_zscore(value, window) -> float:
         return 0.00
 
 
-def plot_graph(*args: LoadMonth) -> None:
+def plot_graph(**kwargs: LoadMonth) -> None:
     """
     Plotter
     """
@@ -75,11 +75,11 @@ def plot_graph(*args: LoadMonth) -> None:
     ax.tick_params(which='major', labelsize=8, labelbottom=True)
     ax.tick_params(which='minor', labelsize=6, color='r', labeltop=True)
     ax.grid()
-    # plot graphs
-    for arg in args:
-        ax.plot(arg.get_xaxis(), arg.get_yaxis(), label=arg.name)
+    # plot graphs and get values from the dictionary only
+    for value in kwargs.values():
+        ax.plot(value.get_xaxis(), value.get_yaxis(), label=value.name)
     plt.figure(fig)
-    plt.title("Sparta Data Test", fontsize=13)
+    plt.title("Data Test", fontsize=13)
     plt.xlabel("Timeline", fontsize=8)
     plt.ylabel("Price", fontsize=8)
     plt.legend()
@@ -108,7 +108,7 @@ def order_insert(date_item, value, month: LoadMonth) -> Union[float, None]:
     if date_item not in dates:
         prev_ = [i for i in dates if i < date_item]
         next_ = [i for i in dates if i >= date_item]
-        # Extracts the followind date and the prior date to date_item
+        # Extracts the following date and the prior date to date_item
         prev_elem = prev_[-1]
         next_elem = next_[0]
         if prev_elem != next_elem:

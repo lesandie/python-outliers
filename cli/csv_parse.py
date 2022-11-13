@@ -9,7 +9,7 @@ from cli.functions import check_datetime, check_filepath, process_csv_row, order
 @click.command()
 @click.option("--input", required=True, type=str, help="Input CSV filename for parsing")
 @click.option("--output", required=True, type=str, help="Output CSV filename for writing")
-def main(input_: str, output_: str):
+def main(input: str, output: str): # Use other params because these shadow built in names
     """
     Basic parsing utility
     """
@@ -21,9 +21,9 @@ def main(input_: str, output_: str):
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
     # check_input_parameters returns True or False if all the params are correct
-    if check_filepath(input_) is not False:
-        with open(input_, mode="r", encoding="utf-8-sig", newline="\n") as fhandler, \
-                open(output_, mode="w", encoding="utf-8-sig", newline="\n") as fhandlew:
+    if check_filepath(input) is not False:
+        with open(input, mode="r", encoding="utf-8-sig", newline="\n") as fhandler, \
+                open(output, mode="w", encoding="utf-8-sig", newline="\n") as fhandlew:
             # Init load_month objects in a dict
             loader = {
                 'Sep.21': LoadMonth('Sep.21'),
@@ -76,7 +76,7 @@ def main(input_: str, output_: str):
                     row['generated_on'] = date_item.strftime('%Y-%m-%d %H:%M:%S')
                     awriter.writerow(row)
         # plot graph
-        plot_graph(*loader)
+        plot_graph(**loader)
 
 
 if __name__ == '__main__':
