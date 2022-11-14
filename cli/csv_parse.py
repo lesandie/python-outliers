@@ -6,7 +6,7 @@ from cli.loadmonth import LoadMonth
 from cli.functions import check_datetime, check_filepath, process_csv_row, order_insert, plot_graph
 
 
-@click.command()
+@click.command(help="Basic parsing and plotting utility")
 @click.option("--input", required=True, type=str, help="Input CSV filename for parsing")
 @click.option("--output", required=True, type=str, help="Output CSV filename for writing")
 def main(input: str, output: str): # Use other params because these shadow built in names
