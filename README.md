@@ -20,11 +20,11 @@ After being able to read and plot the data, in a meeting with the stakeholders, 
 
 ## The work to be done for this exercise is:
 
-1. Create a script that can read the data secuentially, and solve any format problems that could appear.
+1. Create a script that can read the data sequentially, and solve any format problems that could appear.
 2. Plot the data to find the outliers
 3. Iterate the read script to detect the outliers and save the data cleaned in a separated csv.
 
-To give your answer, create a repository in any platform you feel confortable with and share it with us. Over that solution we will discuss in a pair-programming about the solution chosen, the thoughts to reach that solution, and a possible improvement.
+To give your answer, create a repository in any platform you feel conformable with and share it with us. Over that solution we will discuss in a pair-programming about the solution chosen, the thoughts to reach that solution, and a possible improvement.
 
 ## The problem
 
@@ -36,20 +36,20 @@ Once this formatting problems were solved, I used a zscore to get the outliers. 
 
 Also another important issue is to begin with an acceptable range for the zscore, being +2 and -2 a good baseline, that actually works nicely in this dataset, because the outliers are very clear. In order to test the zscore range for this dataset, I've generated a ```test_values.txt``` to use it as a guide and validate the z-score calculations.
 
-And last, but not least is that some calculations are sent (as described in the test above) unsecuentially. I've changed from a list to a dict to order the timeseries and plot the calculations althought the're arriving later that expected.
+And last, but not least is that some calculations are sent (as described in the test above) async. I've changed from a list to a dict to order the timeseries and plot the calculations althought the're arriving later that expected.
 
 ## Solution proposed
 
-I could use asyncio and aiocsv to process asynchronously all the basic IO from and to files but i tried to keep it simple.
+I could use asyncio and aiocsv to process asynchronously all the basic IO from and to files but I tried to keep it simple.
 
-Create a pyenv virtualenv (3.9.6) and execute the script as follows:
+Create a pyenv virtualenv (I've update the code from 3.8 to 3.11.0 and configured a pyproject to generate a package) and execute the script as follows:
 
 ```bash
 (dev) ➜ git:(main) ✗ pip install -e .
-(dev) ➜ git:(main) ✗ python csv-parse.py --help
-Usage: csv-parse.py [OPTIONS]
+(dev) ➜ git:(main) ✗ plot-cli --help
+Usage: plot-cli [OPTIONS]
 
-  Basic parsing utility
+  Basic parsing and plotting utility
 
 Options:
   --input TEXT   Input CSV filename for parsing  [required]
@@ -60,7 +60,7 @@ Options:
 Simply specify the filename to read from:
 
 ```bash
-(dev) ➜ git:(main) ✗ python csv-parse.py --input RBOB_data_test.csv --output cleaned_RBOB_data.csv
+(dev) ➜ git:(main) ✗ plot-cli --input RBOB_data_test.csv --output cleaned_RBOB_data.csv
 ```
 
 The script will:
@@ -72,3 +72,4 @@ The script will:
 ## Future WIP
 
 The best way to obtain an ordered CSV (because there are out-of-order events arriving later) is to load chunks of the cleaned file into PostgreSQL and generate an ordered CSV using ```COPY``` and ```FORMAT``` commands. This way we can have a second copy of the csv in a database and we can use the benefits of an ORDER BY SELECT to order the results and write them to a CSV file. This could be done with a UDF in ```PL/pgSQL``` and an ```unlogged``` table to speedup the insertion process.
+Why adding a Database?. Because of scalability, if the file is so big, no python script can manage in RAM, then it is better to ingest into a database and use it to sort data.

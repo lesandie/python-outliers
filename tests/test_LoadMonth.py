@@ -1,5 +1,5 @@
-from app.loadmonth import LoadMonth
-from app.functions import get_zscore
+from cli.loadmonth import LoadMonth
+from cli.functions import get_zscore
 import numpy as np
 from datetime import datetime
 import pytest
